@@ -1,0 +1,11 @@
+body {
+    background: #333;
+    color: #fff;
+    font-family: sans-serif;
+    text-align: center;
+}
+/* 讓畫布有個邊框，看起來更像遊戲視窗 */
+#gameCanvas {
+    background: #000;
+    border: 2px solid #fff;
+}
