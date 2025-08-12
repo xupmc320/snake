@@ -13,3 +13,23 @@ body {
     font-size: 24px;
     margin-bottom: 10px;
 }
+#gameControl button {
+    padding: 10px 20px;
+    font-size: 16px;
+    margin: 10px;
+    cursor: pointer;
+    border: 1px solid #fff;
+    background-color: #444;
+    color: #fff;
+    border-radius: 5px;
+}
+
+
+#gameControl button:hover {
+    background-color: #666;
+}
+
+
+.hidden {
+    display: none !important;
+}
