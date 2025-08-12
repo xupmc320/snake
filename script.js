@@ -1,40 +1,22 @@
-// --- Canvas Setup (不變) ---
+// --- Canvas Setup ---
 const gameCanvas = document.getElementById('gameCanvas');
 const ctx = gameCanvas.getContext('2d');
 
-// --- Game Settings (新增了方向與速度) ---
-const tileSize = 20; // 方塊的大小 (蛇的每一節身體，也是移動的單位)
+// --- Game Settings ---
+const tileSize = 20;
+let snakeX = 200;
+let snakeY = 200;
+let dx = 0;
+let dy = 0;
+let gameOver = false; // 新增一個「遊戲結束」的狀態開關
 
-let snakeX = 200; // 蛇頭的起始 X 座標
-let snakeY = 200; // 蛇頭的起始 Y 座標
-
-// dx, dy 代表蛇在 X 和 Y 軸上每一幀(frame)的移動距離
-let dx = 0; // 水平方向速度
-let dy = 0; // 垂直方向速度
-
-
-// --- 主遊戲迴圈 (Game Loop) ---
-// 這個函式會透過 setInterval 不斷重複執行
-function gameLoop() {
-    // 1. 更新蛇頭的位置
-    snakeX += dx;
-    snakeY += dy;
-
-    // 2. 清除整個畫布 (用黑色覆蓋)
-    // 如果不清空，蛇移動時會留下殘影
-    ctx.fillStyle = 'black';
-    ctx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
-
-    // 3. 在新位置上重繪蛇頭
-    ctx.fillStyle = 'lime';
-    ctx.fillRect(snakeX, snakeY, tileSize, tileSize);
-}
-
-// --- 鍵盤監聽 ---
-// 為整個網頁加上一個事件監聽器，專門聽"keydown"(按下按鍵)事件
+// --- Keyboard Input Listener ---
 document.addEventListener('keydown', changeDirection);
 
 function changeDirection(event) {
+    // 如果遊戲已經結束，就直接忽略任何按鍵輸入
+    if (gameOver) return;
+
     const LEFT_KEY = 37;
     const RIGHT_KEY = 39;
     const UP_KEY = 38;
@@ -42,30 +24,56 @@ function changeDirection(event) {
 
     const keyPressed = event.keyCode;
 
-    // 根據按下的按鍵，改變蛇的移動方向
     if (keyPressed === LEFT_KEY) {
         dx = -tileSize;
         dy = 0;
     }
-
     if (keyPressed === UP_KEY) {
         dx = 0;
         dy = -tileSize;
     }
-
     if (keyPressed === RIGHT_KEY) {
         dx = tileSize;
         dy = 0;
     }
-
     if (keyPressed === DOWN_KEY) {
         dx = 0;
         dy = tileSize;
     }
 }
 
+// --- Game Loop ---
+function gameLoop() {
+    // 如果遊戲結束開關被打開，就執行遊戲結束的畫面然後停止
+    if (gameOver) {
+        ctx.fillStyle = 'white';
+        ctx.font = '50px Verdana';
+        ctx.fillText('Game Over!', gameCanvas.width / 6.5, gameCanvas.height / 2);
+        return; // 使用 return 來停止遊戲迴圈的後續執行
+    }
+
+    // 更新蛇頭的位置
+    snakeX += dx;
+    snakeY += dy;
+
+    // *** 新增的碰撞偵測邏輯 ***
+    // 檢查蛇頭是否撞到左右牆壁
+    if (snakeX < 0 || snakeX >= gameCanvas.width) {
+        gameOver = true; // 打開遊戲結束的開關
+    }
+    // 檢查蛇頭是否撞到上下牆壁
+    if (snakeY < 0 || snakeY >= gameCanvas.height) {
+        gameOver = true; // 打開遊戲結束的開關
+    }
+    
+    // 清除整個畫布
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
+
+    // 重繪蛇頭
+    ctx.fillStyle = 'lime';
+    ctx.fillRect(snakeX, snakeY, tileSize, tileSize);
+}
 
 // --- 啟動遊戲 ---
-// setInterval 會每隔 100 毫秒(ms)，就去執行一次 gameLoop 函式
-// 1000ms = 1秒，所以這裡是每秒執行10次，也就是遊戲速度
 setInterval(gameLoop, 100);
