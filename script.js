@@ -1,64 +1,52 @@
-// --- Canvas Setup ---
+// --- script.js (v3.0 - 音效版) ---
 const gameCanvas = document.getElementById('gameCanvas');
 const ctx = gameCanvas.getContext('2d');
 const scoreDisplay = document.getElementById('score');
-const startButton = document.getElementById('startButton');
-const restartButton = document.getElementById('restartButton');
 
-// --- Game Settings ---
+// *** 新增 Part 1：載入音效檔案 ***
+const eatSound = new Audio('sounds/eat.mp3');
+const gameOverSound = new Audio('sounds/gameOver.mp3');
+// *** 新增結束 ***
+
 const tileSize = 20;
 let score = 0;
-let gameSpeed = 100; // 初始速度 (延遲100ms)
-let gameOver = true; 
-let snake = [];
-let dx = 0;
+let gameOver = false;
+
+let snake = [
+  {x: 200, y: 200}, {x: 180, y: 200}, {x: 160, y: 200}
+];
+let dx = tileSize;
 let dy = 0;
 let foodX;
 let foodY;
 
-// --- 初始化與開始遊戲 ---
-function initializeGame() {
-    snake = [ {x: 200, y: 200}, {x: 180, y: 200}, {x: 160, y: 200} ];
-    dx = tileSize;
-    dy = 0;
-    score = 0;
-    gameSpeed = 100; // 重置速度
-    scoreDisplay.textContent = '分數: ' + score;
-    createFood();
-    gameOver = false;
-    restartButton.classList.add('hidden');
-    startButton.classList.add('hidden');
-}
+main();
+createFood();
 
-function startGame() {
-    initializeGame();
-    main(); // 啟動遊戲迴圈
-}
-
-// --- 遊戲主要函式 ---
 function main() {
-    // 遊戲迴圈的核心，使用 setTimeout 達成
-    setTimeout(function onTick() {
-        // *** BUG修復點 ***
-        // 我們將檢查遊戲結束的邏輯移到這裡，確保每次移動後都檢查
-        if (didGameEnd()) {
-            // 如果 didGameEnd() 回傳 true，就執行遊戲結束的函式
-            endGame();
-            return; // 立刻停止遊戲迴圈
-        }
+    // *** 修改 Part 2：在遊戲結束時播放音效 ***
+    if (didGameEnd()) {
+        gameOverSound.play(); // <<-- 加上這一行
+        gameOver = true;
+    }
+    // *** 修改結束 ***
 
-        // 如果遊戲還沒結束，就正常執行
+    if (gameOver) {
+        ctx.fillStyle = 'white';
+        ctx.font = '50px Verdana';
+        ctx.fillText('Game Over!', gameCanvas.width / 6.5, gameCanvas.height / 2);
+        return;
+    }
+
+    setTimeout(function onTick() {
         clearCanvas();
         drawFood();
         moveSnake();
         drawSnake();
-
-        // 再次呼叫 main 函式，形成無限迴圈
         main();
-    }, gameSpeed); // *** 使用 gameSpeed 變數來控制速度 ***
+    }, 100);
 }
 
-// --- 其他輔助函式 ---
 function clearCanvas() {
     ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
@@ -83,11 +71,9 @@ function moveSnake() {
         score += 10;
         scoreDisplay.textContent = '分數: ' + score;
         
-        // *** 新增功能點：逐漸加速 ***
-        // 每吃到一次食物，就讓延遲減少2毫秒，但最快不超過40毫秒延遲
-        if (gameSpeed > 40) {
-            gameSpeed -= 2;
-        }
+        // *** 修改 Part 3：在吃到食物時播放音效 ***
+        eatSound.play(); // <<-- 加上這一行
+        // *** 修改結束 ***
 
         createFood();
     } else {
@@ -113,28 +99,14 @@ function didGameEnd() {
     return hitLeftWall || hitRightWall || hitTopWall || hitBottomWall;
 }
 
-function endGame() {
-    gameOver = true;
-    restartButton.classList.remove('hidden');
-    ctx.fillStyle = 'white';
-    ctx.font = '50px Verdana';
-    ctx.fillText('Game Over!', gameCanvas.width / 6.5, gameCanvas.height / 2);
-}
-
-// --- 事件監聽 ---
 document.addEventListener('keydown', changeDirection);
-startButton.addEventListener('click', startGame);
-restartButton.addEventListener('click', startGame);
 
 function changeDirection(event) {
-    if (gameOver && event.keyCode !== 32) return; // 遊戲結束時只允許空白鍵
-
+    // ... (此函式內容不變) ...
     const LEFT_KEY = 37;
     const RIGHT_KEY = 39;
     const UP_KEY = 38;
     const DOWN_KEY = 40;
-    const SPACE_KEY = 32;
-
     const keyPressed = event.keyCode;
     const goingUp = dy === -tileSize;
     const goingDown = dy === tileSize;
@@ -145,9 +117,4 @@ function changeDirection(event) {
     if (keyPressed === UP_KEY && !goingDown) { dx = 0; dy = -tileSize; }
     if (keyPressed === RIGHT_KEY && !goingLeft) { dx = tileSize; dy = 0; }
     if (keyPressed === DOWN_KEY && !goingUp) { dx = 0; dy = tileSize; }
-    
-    // 讓空白鍵也能觸發開始/重新開始
-    if (keyPressed === SPACE_KEY && gameOver) {
-        startGame();
-    }
 }
